@@ -5,10 +5,13 @@ kaboom({
     height: 600,
     background: [0, 0, 0],
     debug: true,
+    touchToMouse: true,  // Enable touch to mouse conversion
 })
 
 // Game state
 let score = 0
+let isTouching = false
+let touchStartX = 0
 
 // Player movement constants
 const SPEED = 300      // Updated from 200 to 300
@@ -153,7 +156,73 @@ onUpdate(() => {
     }
 })
 
+// Add mobile controls
+const leftButton = add([
+    rect(100, 100),
+    pos(10, height() - 110),
+    opacity(0.5),
+    color(255, 255, 255),
+    area(),
+    fixed(),
+    "left-button"
+])
+
+const rightButton = add([
+    rect(100, 100),
+    pos(120, height() - 110),
+    opacity(0.5),
+    color(255, 255, 255),
+    area(),
+    fixed(),
+    "right-button"
+])
+
+const jumpButton = add([
+    rect(100, 100),
+    pos(width() - 110, height() - 110),
+    opacity(0.5),
+    color(255, 255, 255),
+    area(),
+    fixed(),
+    "jump-button"
+])
+
+// Add text to buttons
+add([
+    text("←", { size: 32 }),
+    pos(45, height() - 75),
+    fixed(),
+])
+
+add([
+    text("→", { size: 32 }),
+    pos(155, height() - 75),
+    fixed(),
+])
+
+add([
+    text("JUMP", { size: 24 }),
+    pos(width() - 90, height() - 75),
+    fixed(),
+])
+
 // Basic controls
+onClick("left-button", () => {
+    player.move(-SPEED, 0)
+})
+
+onClick("right-button", () => {
+    player.move(SPEED, 0)
+})
+
+onClick("jump-button", () => {
+    if (player.isGrounded() || player.jumpCount < player.maxJumps) {
+        player.jump(JUMP_FORCE)
+        player.jumpCount++
+    }
+})
+
+// Keep existing keyboard controls
 keyDown("left", () => {
     player.move(-SPEED, 0)
 })
@@ -162,9 +231,7 @@ keyDown("right", () => {
     player.move(SPEED, 0)
 })
 
-// Jump control with double jump
 keyPress("space", () => {
-    // Can jump if grounded or have remaining jumps
     if (player.isGrounded() || player.jumpCount < player.maxJumps) {
         player.jump(JUMP_FORCE)
         player.jumpCount++
