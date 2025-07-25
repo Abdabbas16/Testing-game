@@ -1,6 +1,5 @@
-// Initialize Kaboom with debug mode
+// Initialize Kaboom
 kaboom({
-    global: true,
     width: 800,
     height: 600,
     background: [0, 0, 0],
@@ -27,98 +26,12 @@ const player = add([
 ])
 
 // Add score display
-const scoreLabel = add([
+add([
     text("Score: 0"),
     pos(16, 16),
 ])
 
-// Simple mobile controls
-const mobileControls = {
-    left: add([
-        rect(100, 100),
-        pos(10, height() - 120),
-        color(255, 255, 255),
-        opacity(0.5),
-        area(),
-        fixed(),
-    ]),
-    right: add([
-        rect(100, 100),
-        pos(120, height() - 120),
-        color(255, 255, 255),
-        opacity(0.5),
-        area(),
-        fixed(),
-    ]),
-    jump: add([
-        rect(100, 100),
-        pos(width() - 110, height() - 120),
-        color(255, 255, 255),
-        opacity(0.5),
-        area(),
-        fixed(),
-    ])
-}
-
-// Add simple text labels
-add([
-    text("←"),
-    pos(45, height() - 80),
-    color(0, 0, 0),
-    fixed(),
-])
-
-add([
-    text("→"),
-    pos(155, height() - 80),
-    color(0, 0, 0),
-    fixed(),
-])
-
-add([
-    text("JUMP"),
-    pos(width() - 90, height() - 80),
-    color(0, 0, 0),
-    fixed(),
-])
-
-// Mobile touch controls
-let isMovingLeft = false
-let isMovingRight = false
-
-// Touch handlers
-mobileControls.left.onClick(() => {
-    player.move(-SPEED, 0)
-})
-
-mobileControls.right.onClick(() => {
-    player.move(SPEED, 0)
-})
-
-mobileControls.jump.onClick(() => {
-    if (player.isGrounded() || player.jumpCount < player.maxJumps) {
-        player.jump(JUMP_FORCE)
-        player.jumpCount++
-    }
-})
-
-// Keep keyboard controls for desktop
-onKeyDown("left", () => {
-    player.move(-SPEED, 0)
-})
-
-onKeyDown("right", () => {
-    player.move(SPEED, 0)
-})
-
-onKeyPress("space", () => {
-    if (player.isGrounded() || player.jumpCount < player.maxJumps) {
-        player.jump(JUMP_FORCE)
-        player.jumpCount++
-    }
-})
-
-// Add platforms
+// Add ground
 add([
     rect(width(), 48),
     pos(0, height() - 48),
@@ -127,6 +40,7 @@ add([
     solid(),
 ])
 
+// Add platforms
 add([
     rect(200, 20),
     pos(300, height() - 200),
@@ -183,13 +97,50 @@ onUpdate("enemy", (e) => {
     }
 })
 
+// Controls
+onKeyDown("left", () => {
+    player.move(-SPEED, 0)
+})
+
+onKeyDown("right", () => {
+    player.move(SPEED, 0)
+})
+
+onKeyPress("space", () => {
+    if (player.isGrounded() || player.jumpCount < player.maxJumps) {
+        player.jump(JUMP_FORCE)
+        player.jumpCount++
+    }
+})
+
+// Mobile controls
+const touchArea = height() / 3
+onClick((p) => {
+    if (p.y > height() - touchArea) {
+        if (p.x < width() / 3) {
+            // Left third of screen
+            player.move(-SPEED, 0)
+        } else if (p.x > (width() * 2) / 3) {
+            // Right third of screen
+            player.move(SPEED, 0)
+        } else {
+            // Middle third of screen
+            if (player.isGrounded() || player.jumpCount < player.maxJumps) {
+                player.jump(JUMP_FORCE)
+                player.jumpCount++
+            }
+        }
+    }
+})
+
 // Reset jump count when landing
 player.onGround(() => {
     player.jumpCount = 0
-    // Add score when landing on platforms
     if (player.pos.y < height() - 88) {
         score += 10
-        scoreLabel.text = "Score: " + score
+        every("score", (s) => {
+            s.text = "Score: " + score
+        })
     }
 })
 
@@ -197,25 +148,23 @@ player.onGround(() => {
 player.onCollide("enemy", () => {
     player.pos = vec2(120, height() - 88)
     score = 0
-    scoreLabel.text = "Score: 0"
+    every("score", (s) => {
+        s.text = "Score: 0"
+    })
     player.jumpCount = 0
 })
 
 // Keep player in bounds
 player.onUpdate(() => {
-    // Left and right bounds
-    if (player.pos.x < 0) {
-        player.pos.x = 0
-    }
-    if (player.pos.x > width() - 40) {
-        player.pos.x = width() - 40
-    }
+    if (player.pos.x < 0) player.pos.x = 0
+    if (player.pos.x > width() - 40) player.pos.x = width() - 40
     
-    // Reset if player falls off
     if (player.pos.y > height()) {
         player.pos = vec2(120, height() - 88)
         score = 0
-        scoreLabel.text = "Score: 0"
+        every("score", (s) => {
+            s.text = "Score: 0"
+        })
         player.jumpCount = 0
     }
 })
