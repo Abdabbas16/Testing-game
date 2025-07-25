@@ -5,29 +5,26 @@ kaboom({
     height: 600,
     background: [0, 0, 0],
     debug: true,
-    touchToMouse: true,  // Enable touch to mouse conversion
+    touchToMouse: true,
 })
 
 // Game state
 let score = 0
-let isTouching = false
-let touchStartX = 0
 
 // Player movement constants
-const SPEED = 300      // Updated from 200 to 300
-const JUMP_FORCE = 800  // Updated from 500 to 800
+const SPEED = 300
+const JUMP_FORCE = 800
 
 // Add player
 const player = add([
-    rect(40, 40),  // Player size
-    pos(120, height() - 88),  // Position just above ground platform
-    color(0, 255, 180),  // Teal color
+    rect(40, 40),
+    pos(120, height() - 88),
+    color(0, 255, 180),
     area(),
     body(),
     {
-        // Custom properties
         jumpCount: 0,
-        maxJumps: 2,  // Allow double jump
+        maxJumps: 2,
     },
 ])
 
@@ -35,9 +32,133 @@ const player = add([
 const scoreLabel = add([
     text("Score: 0"),
     pos(16, 16),
+    fixed(),
 ])
 
-// Add ground
+// Mobile Controls - Bigger and better positioned
+const buttonSize = 120
+const buttonOpacity = 0.5
+const buttonY = height() - buttonSize - 20
+
+// Left button
+const leftButton = add([
+    rect(buttonSize, buttonSize),
+    pos(20, buttonY),
+    color(255, 255, 255),
+    opacity(buttonOpacity),
+    area(),
+    fixed(),
+    "mobile-control",
+    "left-button",
+])
+
+// Right button
+const rightButton = add([
+    rect(buttonSize, buttonSize),
+    pos(buttonSize + 40, buttonY),
+    color(255, 255, 255),
+    opacity(buttonOpacity),
+    area(),
+    fixed(),
+    "mobile-control",
+    "right-button",
+])
+
+// Jump button - on the right side
+const jumpButton = add([
+    rect(buttonSize, buttonSize),
+    pos(width() - buttonSize - 20, buttonY),
+    color(255, 255, 255),
+    opacity(buttonOpacity),
+    area(),
+    fixed(),
+    "mobile-control",
+    "jump-button",
+])
+
+// Add button labels
+add([
+    text("←", { size: 48 }),
+    pos(buttonSize/2, buttonY + buttonSize/2),
+    color(0, 0, 0),
+    anchor("center"),
+    fixed(),
+    "mobile-control",
+])
+
+add([
+    text("→", { size: 48 }),
+    pos(buttonSize * 1.5 + 40, buttonY + buttonSize/2),
+    color(0, 0, 0),
+    anchor("center"),
+    fixed(),
+    "mobile-control",
+])
+
+add([
+    text("JUMP", { size: 32 }),
+    pos(width() - buttonSize/2 - 20, buttonY + buttonSize/2),
+    color(0, 0, 0),
+    anchor("center"),
+    fixed(),
+    "mobile-control",
+])
+
+// Mobile touch controls
+let isMovingLeft = false
+let isMovingRight = false
+
+// Touch handlers for movement
+onClick("left-button", () => {
+    isMovingLeft = true
+})
+
+onClick("right-button", () => {
+    isMovingRight = true
+})
+
+onTouchEnd("left-button", () => {
+    isMovingLeft = false
+})
+
+onTouchEnd("right-button", () => {
+    isMovingRight = false
+})
+
+onClick("jump-button", () => {
+    if (player.isGrounded() || player.jumpCount < player.maxJumps) {
+        player.jump(JUMP_FORCE)
+        player.jumpCount++
+    }
+})
+
+// Continuous movement update
+onUpdate(() => {
+    if (isMovingLeft) {
+        player.move(-SPEED, 0)
+    }
+    if (isMovingRight) {
+        player.move(SPEED, 0)
+    }
+})
+
+// Keep keyboard controls for desktop
+keyDown("left", () => {
+    player.move(-SPEED, 0)
+})
+
+keyDown("right", () => {
+    player.move(SPEED, 0)
+})
+
+keyPress("space", () => {
+    if (player.isGrounded() || player.jumpCount < player.maxJumps) {
+        player.jump(JUMP_FORCE)
+        player.jumpCount++
+    }
+})
+
+// Add platforms
 add([
     rect(width(), 48),
     pos(0, height() - 48),
@@ -46,7 +167,6 @@ add([
     solid(),
 ])
 
-// Add platforms - Now with more platforms at various heights and positions
 add([
     rect(200, 20),
     pos(300, height() - 200),
@@ -126,7 +246,7 @@ function addEnemy(x, y) {
     ])
 }
 
-// Add more enemies at different positions
+// Add enemies
 const enemy1 = addEnemy(300, height() - 240)
 const enemy2 = addEnemy(600, height() - 340)
 const enemy3 = addEnemy(100, height() - 440)
@@ -153,88 +273,6 @@ onUpdate(() => {
     } else {
         movingPlatform.pos.x -= movingPlatform.speed * dt()
         if (movingPlatform.pos.x < movingPlatform.startX) movingPlatform.moveRight = true
-    }
-})
-
-// Add mobile controls
-const leftButton = add([
-    rect(100, 100),
-    pos(10, height() - 110),
-    opacity(0.5),
-    color(255, 255, 255),
-    area(),
-    fixed(),
-    "left-button"
-])
-
-const rightButton = add([
-    rect(100, 100),
-    pos(120, height() - 110),
-    opacity(0.5),
-    color(255, 255, 255),
-    area(),
-    fixed(),
-    "right-button"
-])
-
-const jumpButton = add([
-    rect(100, 100),
-    pos(width() - 110, height() - 110),
-    opacity(0.5),
-    color(255, 255, 255),
-    area(),
-    fixed(),
-    "jump-button"
-])
-
-// Add text to buttons
-add([
-    text("←", { size: 32 }),
-    pos(45, height() - 75),
-    fixed(),
-])
-
-add([
-    text("→", { size: 32 }),
-    pos(155, height() - 75),
-    fixed(),
-])
-
-add([
-    text("JUMP", { size: 24 }),
-    pos(width() - 90, height() - 75),
-    fixed(),
-])
-
-// Basic controls
-onClick("left-button", () => {
-    player.move(-SPEED, 0)
-})
-
-onClick("right-button", () => {
-    player.move(SPEED, 0)
-})
-
-onClick("jump-button", () => {
-    if (player.isGrounded() || player.jumpCount < player.maxJumps) {
-        player.jump(JUMP_FORCE)
-        player.jumpCount++
-    }
-})
-
-// Keep existing keyboard controls
-keyDown("left", () => {
-    player.move(-SPEED, 0)
-})
-
-keyDown("right", () => {
-    player.move(SPEED, 0)
-})
-
-keyPress("space", () => {
-    if (player.isGrounded() || player.jumpCount < player.maxJumps) {
-        player.jump(JUMP_FORCE)
-        player.jumpCount++
     }
 })
 
