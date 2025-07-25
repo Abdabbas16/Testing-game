@@ -1,18 +1,16 @@
-// Initialize Kaboom with debug mode
+// Initialize Kaboom
 kaboom({
-    global: true,
     width: 800,
     height: 600,
     background: [0, 0, 0],
-    debug: true,
 })
 
 // Game state
 let score = 0
 
 // Player movement constants
-const SPEED = 300      // Updated from 200 to 300
-const JUMP_FORCE = 800  // Updated from 500 to 800
+const SPEED = 300
+const JUMP_FORCE = 800
 
 // Add player
 const player = add([
@@ -22,7 +20,6 @@ const player = add([
     area(),
     body(),
     {
-        // Custom properties
         jumpCount: 0,
         maxJumps: 2,  // Allow double jump
     },
@@ -34,78 +31,73 @@ const scoreLabel = add([
     pos(16, 16),
 ])
 
-// Add ground
+// Add platforms
+// Ground platform
 add([
     rect(width(), 48),
     pos(0, height() - 48),
-    color(255, 255, 255),
     area(),
     solid(),
+    color(255, 255, 255),  // White color
 ])
 
-// Add platforms - Now with more platforms at various heights and positions
+// Floating platforms
 add([
     rect(200, 20),
     pos(300, height() - 200),
-    color(255, 255, 255),
     area(),
     solid(),
+    color(255, 255, 255),  // White color
 ])
 
 add([
     rect(200, 20),
     pos(600, height() - 300),
-    color(255, 255, 255),
     area(),
     solid(),
+    color(255, 255, 255),  // White color
 ])
 
 add([
     rect(200, 20),
     pos(100, height() - 400),
-    color(255, 255, 255),
     area(),
     solid(),
+    color(255, 255, 255),  // White color
 ])
 
-// Additional platforms
-add([
-    rect(150, 20),
-    pos(400, height() - 500),
-    color(255, 255, 255),
-    area(),
-    solid(),
-])
-
-add([
-    rect(150, 20),
-    pos(700, height() - 450),
-    color(255, 255, 255),
-    area(),
-    solid(),
-])
-
-add([
-    rect(150, 20),
-    pos(200, height() - 350),
-    color(255, 255, 255),
-    area(),
-    solid(),
-])
-
-// Moving platform
+// Add moving platform
 const movingPlatform = add([
     rect(100, 20),
     pos(400, height() - 250),
-    color(200, 200, 255),  // Light blue color
     area(),
     solid(),
+    color(200, 200, 255),  // Light blue color
     {
         moveRight: true,
-        startX: 400,
         speed: 80,
+        startX: 400,
     },
 ])
+
+// Add spikes
+function addSpike(x, y) {
+    return add([
+        rect(20, 20),
+        pos(x, y),
+        color(255, 255, 0),  // Yellow color
+        area(),
+        "spike",
+        rotate(45),  // Rotate to make it look like a spike
+    ])
+}
+
+// Add spikes to platforms
+const spikes = [
+    addSpike(400, height() - 220),
+    addSpike(700, height() - 320),
+    addSpike(150, height() - 420),
+]
 
 // Add enemies
 function addEnemy(x, y) {
@@ -124,12 +116,23 @@ function addEnemy(x, y) {
 }
 
 // Add more enemies at different positions
-const enemy1 = addEnemy(300, height() - 240)
-const enemy2 = addEnemy(600, height() - 340)
-const enemy3 = addEnemy(100, height() - 440)
-const enemy4 = addEnemy(400, height() - 540)  // New enemy
-const enemy5 = addEnemy(200, height() - 390)  // New enemy
-const enemy6 = addEnemy(700, height() - 490)  // New enemy
+const enemies = [
+    addEnemy(300, height() - 240),
+    addEnemy(600, height() - 340),
+    addEnemy(100, height() - 440),
+    addEnemy(400, height() - 540),  // New enemy
+    addEnemy(200, height() - 340),  // New enemy
+]
+
+// Add bouncing platform
+const bouncePad = add([
+    rect(60, 20),
+    pos(500, height() - 100),
+    area(),
+    solid(),
+    color(255, 150, 150),  // Pink color
+    "bouncer",
+])
 
 // Move enemies back and forth
 onUpdate("enemy", (e) => {
@@ -146,10 +149,12 @@ onUpdate("enemy", (e) => {
 onUpdate(() => {
     if (movingPlatform.moveRight) {
         movingPlatform.pos.x += movingPlatform.speed * dt()
-        if (movingPlatform.pos.x > movingPlatform.startX + 300) movingPlatform.moveRight = false
+        if (movingPlatform.pos.x > movingPlatform.startX + 200) 
+            movingPlatform.moveRight = false
     } else {
         movingPlatform.pos.x -= movingPlatform.speed * dt()
-        if (movingPlatform.pos.x < movingPlatform.startX) movingPlatform.moveRight = true
+        if (movingPlatform.pos.x < movingPlatform.startX) 
+            movingPlatform.moveRight = true
     }
 })
 
@@ -181,12 +186,24 @@ player.onGround(() => {
     }
 })
 
-// Handle enemy collision
+// Handle enemy and spike collision
 player.onCollide("enemy", () => {
     player.pos = vec2(120, height() - 88)
     score = 0
     scoreLabel.text = "Score: 0"
     player.jumpCount = 0
+})
+
+player.onCollide("spike", () => {
+    player.pos = vec2(120, height() - 88)
+    score = 0
+    scoreLabel.text = "Score: 0"
+    player.jumpCount = 0
+})
+
+// Super jump on bouncer
+player.onCollide("bouncer", () => {
+    player.jump(JUMP_FORCE * 1.5)  // Higher jump from bounce pad
 })
 
 // Keep player in bounds
@@ -206,9 +223,4 @@ player.onUpdate(() => {
         scoreLabel.text = "Score: 0"
         player.jumpCount = 0
     }
-
-    // Debug position info
-    debug.log(`Player position: ${Math.floor(player.pos.x)}, ${Math.floor(player.pos.y)}`)
-    debug.log(`Jump count: ${player.jumpCount}`)
-    debug.log(`Score: ${score}`)
 })
