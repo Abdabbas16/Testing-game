@@ -14,55 +14,56 @@ const JUMP_FORCE = 800
 
 // Add player
 const player = add([
-    rect(40, 40),
-    pos(120, height() - 88),
-    color(0, 255, 180),
+    rect(40, 40),  // Player size
+    pos(120, height() - 88),  // Position just above ground platform
+    color(0, 255, 180),  // Teal color
     area(),
     body(),
     {
         jumpCount: 0,
-        maxJumps: 2,
+        maxJumps: 2,  // Allow double jump
     },
 ])
 
 // Add score display
-add([
+const scoreLabel = add([
     text("Score: 0"),
     pos(16, 16),
 ])
 
-// Add ground
+// Add platforms
+// Ground platform
 add([
     rect(width(), 48),
     pos(0, height() - 48),
-    color(255, 255, 255),
     area(),
     solid(),
+    color(255, 255, 255),  // White color
 ])
 
-// Add platforms
+// Floating platforms
 add([
     rect(200, 20),
     pos(300, height() - 200),
-    color(255, 255, 255),
     area(),
     solid(),
+    color(255, 255, 255),  // White color
 ])
 
 add([
     rect(200, 20),
     pos(600, height() - 300),
-    color(255, 255, 255),
     area(),
     solid(),
+    color(255, 255, 255),  // White color
 ])
 
 add([
     rect(200, 20),
     pos(100, height() - 400),
-    color(255, 255, 255),
     area(),
     solid(),
+    color(255, 255, 255),  // White color
 ])
 
 // Add enemies
@@ -81,12 +82,12 @@ function addEnemy(x, y) {
     ])
 }
 
-// Add enemies
+// Add some enemies
 const enemy1 = addEnemy(300, height() - 240)
 const enemy2 = addEnemy(600, height() - 340)
 const enemy3 = addEnemy(100, height() - 440)
 
-// Move enemies
+// Move enemies back and forth
 onUpdate("enemy", (e) => {
     if (e.moveRight) {
         e.pos.x += e.speed * dt()
@@ -97,50 +98,31 @@ onUpdate("enemy", (e) => {
     }
 })
 
-// Controls
-onKeyDown("left", () => {
+// Basic controls
+keyDown("left", () => {
     player.move(-SPEED, 0)
 })
 
-onKeyDown("right", () => {
+keyDown("right", () => {
     player.move(SPEED, 0)
 })
 
-onKeyPress("space", () => {
+// Jump control with double jump
+keyPress("space", () => {
+    // Can jump if grounded or have remaining jumps
     if (player.isGrounded() || player.jumpCount < player.maxJumps) {
         player.jump(JUMP_FORCE)
         player.jumpCount++
     }
 })
 
-// Mobile controls
-const touchArea = height() / 3
-onClick((p) => {
-    if (p.y > height() - touchArea) {
-        if (p.x < width() / 3) {
-            // Left third of screen
-            player.move(-SPEED, 0)
-        } else if (p.x > (width() * 2) / 3) {
-            // Right third of screen
-            player.move(SPEED, 0)
-        } else {
-            // Middle third of screen
-            if (player.isGrounded() || player.jumpCount < player.maxJumps) {
-                player.jump(JUMP_FORCE)
-                player.jumpCount++
-            }
-        }
-    }
-})
-
 // Reset jump count when landing
 player.onGround(() => {
     player.jumpCount = 0
+    // Add score when landing on platforms (not ground)
     if (player.pos.y < height() - 88) {
         score += 10
-        every("score", (s) => {
-            s.text = "Score: " + score
-        })
+        scoreLabel.text = "Score: " + score
     }
 })
 
@@ -148,23 +130,25 @@ player.onGround(() => {
 player.onCollide("enemy", () => {
     player.pos = vec2(120, height() - 88)
     score = 0
-    every("score", (s) => {
-        s.text = "Score: 0"
-    })
+    scoreLabel.text = "Score: 0"
     player.jumpCount = 0
 })
 
 // Keep player in bounds
 player.onUpdate(() => {
-    if (player.pos.x < 0) player.pos.x = 0
-    if (player.pos.x > width() - 40) player.pos.x = width() - 40
+    // Left and right bounds
+    if (player.pos.x < 0) {
+        player.pos.x = 0
+    }
+    if (player.pos.x > width() - 40) {
+        player.pos.x = width() - 40
+    }
     
+    // Reset if player falls off
     if (player.pos.y > height()) {
         player.pos = vec2(120, height() - 88)
         score = 0
-        every("score", (s) => {
-            s.text = "Score: 0"
-        })
+        scoreLabel.text = "Score: 0"
         player.jumpCount = 0
     }
 })
