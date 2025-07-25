@@ -1,7 +1,7 @@
 // Initialize Kaboom
 kaboom({
-    width: 800,
-    height: 600,
+    width: 1200,
+    height: 1000,
     background: [0, 0, 0],
 })
 
@@ -44,7 +44,7 @@ add([
 // Floating platforms
 add([
     rect(200, 20),
-    pos(300, height() - 200),
+    pos(300, height() - 300),
     area(),
     solid(),
     color(255, 255, 255),  // White color
@@ -52,7 +52,7 @@ add([
 
 add([
     rect(200, 20),
-    pos(600, height() - 300),
+    pos(600, height() - 500),
     area(),
     solid(),
     color(255, 255, 255),  // White color
@@ -60,7 +60,7 @@ add([
 
 add([
     rect(200, 20),
-    pos(100, height() - 400),
+    pos(900, height() - 700),
     area(),
     solid(),
     color(255, 255, 255),  // White color
@@ -69,7 +69,7 @@ add([
 // Add moving platform
 const movingPlatform = add([
     rect(100, 20),
-    pos(400, height() - 250),
+    pos(400, height() - 400),
     area(),
     solid(),
     color(200, 200, 255),  // Light blue color
@@ -94,9 +94,9 @@ function addSpike(x, y) {
 
 // Add spikes to platforms
 const spikes = [
-    addSpike(400, height() - 220),
-    addSpike(700, height() - 320),
-    addSpike(150, height() - 420),
+    addSpike(400, height() - 320),
+    addSpike(700, height() - 520),
+    addSpike(950, height() - 720),
 ]
 
 // Add enemies
@@ -117,11 +117,11 @@ function addEnemy(x, y) {
 
 // Add more enemies at different positions
 const enemies = [
-    addEnemy(300, height() - 240),
-    addEnemy(600, height() - 340),
-    addEnemy(100, height() - 440),
-    addEnemy(400, height() - 540),  // New enemy
-    addEnemy(200, height() - 340),  // New enemy
+    addEnemy(300, height() - 340),
+    addEnemy(600, height() - 540),
+    addEnemy(900, height() - 740),
+    addEnemy(400, height() - 440),  // New enemy
+    addEnemy(800, height() - 640),  // New enemy
 ]
 
 // Add bouncing platform
@@ -132,6 +132,23 @@ const bouncePad = add([
     solid(),
     color(255, 150, 150),  // Pink color
     "bouncer",
+])
+
+// Add high platforms
+add([
+    rect(200, 20),
+    pos(1000, height() - 850),
+    area(),
+    solid(),
+    color(255, 255, 255),  // White color
+])
+
+add([
+    rect(200, 20),
+    pos(700, height() - 900),
+    area(),
+    solid(),
+    color(255, 255, 255),  // White color
 ])
 
 // Move enemies back and forth
@@ -149,7 +166,7 @@ onUpdate("enemy", (e) => {
 onUpdate(() => {
     if (movingPlatform.moveRight) {
         movingPlatform.pos.x += movingPlatform.speed * dt()
-        if (movingPlatform.pos.x > movingPlatform.startX + 200) 
+        if (movingPlatform.pos.x > movingPlatform.startX + 300) 
             movingPlatform.moveRight = false
     } else {
         movingPlatform.pos.x -= movingPlatform.speed * dt()
