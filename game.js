@@ -76,30 +76,27 @@ const jumpButton = add([
     "jump-button",
 ])
 
-// Add button labels
+// Add button labels with centered positioning
 add([
     text("←", { size: 48 }),
-    pos(buttonSize/2, buttonY + buttonSize/2),
+    pos(20 + buttonSize/2 - 12, buttonY + buttonSize/2 - 24),
     color(0, 0, 0),
-    anchor("center"),
     fixed(),
     "mobile-control",
 ])
 
 add([
     text("→", { size: 48 }),
-    pos(buttonSize * 1.5 + 40, buttonY + buttonSize/2),
+    pos(buttonSize + 40 + buttonSize/2 - 12, buttonY + buttonSize/2 - 24),
     color(0, 0, 0),
-    anchor("center"),
     fixed(),
     "mobile-control",
 ])
 
 add([
     text("JUMP", { size: 32 }),
-    pos(width() - buttonSize/2 - 20, buttonY + buttonSize/2),
+    pos(width() - buttonSize/2 - 20 - 32, buttonY + buttonSize/2 - 16),
     color(0, 0, 0),
-    anchor("center"),
     fixed(),
     "mobile-control",
 ])
@@ -191,45 +188,6 @@ add([
     solid(),
 ])
 
-// Additional platforms
-add([
-    rect(150, 20),
-    pos(400, height() - 500),
-    color(255, 255, 255),
-    area(),
-    solid(),
-])
-
-add([
-    rect(150, 20),
-    pos(700, height() - 450),
-    color(255, 255, 255),
-    area(),
-    solid(),
-])
-
-add([
-    rect(150, 20),
-    pos(200, height() - 350),
-    color(255, 255, 255),
-    area(),
-    solid(),
-])
-
-// Moving platform
-const movingPlatform = add([
-    rect(100, 20),
-    pos(400, height() - 250),
-    color(200, 200, 255),  // Light blue color
-    area(),
-    solid(),
-    {
-        moveRight: true,
-        startX: 400,
-        speed: 80,
-    },
-])
-
 // Add enemies
 function addEnemy(x, y) {
     return add([
@@ -250,11 +208,8 @@ function addEnemy(x, y) {
 const enemy1 = addEnemy(300, height() - 240)
 const enemy2 = addEnemy(600, height() - 340)
 const enemy3 = addEnemy(100, height() - 440)
-const enemy4 = addEnemy(400, height() - 540)  // New enemy
-const enemy5 = addEnemy(200, height() - 390)  // New enemy
-const enemy6 = addEnemy(700, height() - 490)  // New enemy
 
-// Move enemies back and forth
+// Move enemies
 onUpdate("enemy", (e) => {
     if (e.moveRight) {
         e.pos.x += e.speed * dt()
@@ -265,21 +220,10 @@ onUpdate("enemy", (e) => {
     }
 })
 
-// Move the moving platform
-onUpdate(() => {
-    if (movingPlatform.moveRight) {
-        movingPlatform.pos.x += movingPlatform.speed * dt()
-        if (movingPlatform.pos.x > movingPlatform.startX + 300) movingPlatform.moveRight = false
-    } else {
-        movingPlatform.pos.x -= movingPlatform.speed * dt()
-        if (movingPlatform.pos.x < movingPlatform.startX) movingPlatform.moveRight = true
-    }
-})
-
 // Reset jump count when landing
 player.onGround(() => {
     player.jumpCount = 0
-    // Add score when landing on platforms (not ground)
+    // Add score when landing on platforms
     if (player.pos.y < height() - 88) {
         score += 10
         scoreLabel.text = "Score: " + score
@@ -311,9 +255,4 @@ player.onUpdate(() => {
         scoreLabel.text = "Score: 0"
         player.jumpCount = 0
     }
-
-    // Debug position info
-    debug.log(`Player position: ${Math.floor(player.pos.x)}, ${Math.floor(player.pos.y)}`)
-    debug.log(`Jump count: ${player.jumpCount}`)
-    debug.log(`Score: ${score}`)
 })
